@@ -172,6 +172,16 @@
         */
         let LEVEL_FLOORS = 0
         let LEVEL_MOBS = 1
+        /*
+          Symbols
+        */
+        let CHAR_PLAYER = '@'
+        let CHAR_WALL = '#'
+        let CHAR_FLOOR = '.'
+        let CHAR_MONSTER = 'm'
+        let CHAR_STAIRS_DOWN = '>'
+        let CHAR_STAIRS_UP = '<'
+        let CHAR_HEAL = '!'
         
         /*
           Dungeon settings
@@ -211,7 +221,7 @@
         let levels = []
         let player = [ 
           randInt( width ), randInt( height ), 
-          POINT_TYPE_PLAYER, playerStartHP, '@' 
+          POINT_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
         ]
         
         /*
@@ -302,7 +312,7 @@
                 /*
                   Even a floor has to have HP to get drawn
                 */
-                points.push( [ x, y, POINT_TYPE_FLOOR, 1, '.' ] )          
+                points.push( [ x, y, POINT_TYPE_FLOOR, 1, CHAR_FLOOR ] )          
               }
             }
           }
@@ -344,10 +354,10 @@
           
           levels[ currentLevel ] = [ points, mobs ]
       
-          let stairs = addMob( POINT_TYPE_STAIRS, 1, '>' )
+          let stairs = addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
       
           for( let i = 0; i < monsterCount; i++ ){
-            addMob( POINT_TYPE_MONSTER, 1, 'm' )
+            addMob( POINT_TYPE_MONSTER, 1, CHAR_MONSTER )
           }
         } 
       
@@ -383,7 +393,7 @@
                 A wall - # - is just an absence of anything else
               */
               c.fillText( 
-                current ? current[ CHAR ] : '#', vX * textSize, vY * textSize 
+                current ? current[ CHAR ] : CHAR_WALL, vX * textSize, vY * textSize 
               )
             }
           }
@@ -426,19 +436,19 @@
             */
       
             //up
-            if( which === 38 ){
+            if( which === 1 ){
               newP[ Y ]--
             } 
             //right
-            else if( which === 39 ){
+            else if( which === 2 ){
               newP[ X ]++
             } 
             //down
-            else if( which === 40 ){
+            else if( which === 3 ){
               newP[ Y ]++
             } 
             //left
-            else if( which === 37 ){
+            else if( which === 0 ){
               newP[ X ]--
             }
           }
@@ -487,9 +497,9 @@
         
         b.onkeydown = e => {
           /*
-            Player moves first, slight advantage - use the keycode from event
+            Player moves first, slight advantage
           */
-          move( player, e.which )
+          move( player, e.which - 37 )
           
           /*
             Search the mobs for monsters, try to randomly move any that aren't dead
@@ -500,7 +510,7 @@
             if( 
               levels[ currentLevel ][ LEVEL_MOBS ][ i ][ HP ] && 
               levels[ currentLevel ][ LEVEL_MOBS ][ i ][ POINT_TYPE ] === POINT_TYPE_MONSTER 
-            ) move( levels[ currentLevel ][ LEVEL_MOBS ][ i ], randInt( 4 ) + 37 )
+            ) move( levels[ currentLevel ][ LEVEL_MOBS ][ i ], randInt( 4 ) )
           }
       
           /*

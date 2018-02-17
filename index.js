@@ -294,19 +294,19 @@ let G = () => {
       */
 
       //up
-      if( which === 38 ){
+      if( which === 1 ){
         newP[ Y ]--
       } 
       //right
-      else if( which === 39 ){
+      else if( which === 2 ){
         newP[ X ]++
       } 
       //down
-      else if( which === 40 ){
+      else if( which === 3 ){
         newP[ Y ]++
       } 
       //left
-      else if( which === 37 ){
+      else if( which === 0 ){
         newP[ X ]--
       }
     }
@@ -355,9 +355,9 @@ let G = () => {
   
   b.onkeydown = e => {
     /*
-      Player moves first, slight advantage - use the keycode from event
+      Player moves first, slight advantage
     */
-    move( player, e.which )
+    move( player, e.which - 37 )
     
     /*
       Search the mobs for monsters, try to randomly move any that aren't dead
@@ -368,7 +368,7 @@ let G = () => {
       if( 
         levels[ currentLevel ][ LEVEL_MOBS ][ i ][ HP ] && 
         levels[ currentLevel ][ LEVEL_MOBS ][ i ][ POINT_TYPE ] === POINT_TYPE_MONSTER 
-      ) move( levels[ currentLevel ][ LEVEL_MOBS ][ i ], randInt( 4 ) + 37 )
+      ) move( levels[ currentLevel ][ LEVEL_MOBS ][ i ], randInt( 4 ) )
     }
 
     /*
