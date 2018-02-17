@@ -7,6 +7,7 @@ Add from top to bottom until we run out of bytes or patience
 - multiple dungeon levels with difficulty progression
 - healing potions
 - win if reach bottom
+- multiple monster types
 - weapons/armor
 - move up and down stairs
 - win if reach bottom and return to top

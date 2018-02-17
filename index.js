@@ -30,6 +30,16 @@ let G = () => {
   */
   let LEVEL_FLOORS = 0
   let LEVEL_MOBS = 1
+  /*
+    Symbols
+  */
+  let CHAR_PLAYER = '@'
+  let CHAR_WALL = '#'
+  let CHAR_FLOOR = '.'
+  let CHAR_MONSTER = 'm'
+  let CHAR_STAIRS_DOWN = '>'
+  let CHAR_STAIRS_UP = '<'
+  let CHAR_HEAL = '!'
   
   /*
     Dungeon settings
@@ -69,7 +79,7 @@ let G = () => {
   let levels = []
   let player = [ 
     randInt( width ), randInt( height ), 
-    POINT_TYPE_PLAYER, playerStartHP, '@' 
+    POINT_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
   ]
   
   /*
@@ -160,7 +170,7 @@ let G = () => {
           /*
             Even a floor has to have HP to get drawn
           */
-          points.push( [ x, y, POINT_TYPE_FLOOR, 1, '.' ] )          
+          points.push( [ x, y, POINT_TYPE_FLOOR, 1, CHAR_FLOOR ] )          
         }
       }
     }
@@ -202,10 +212,10 @@ let G = () => {
     
     levels[ currentLevel ] = [ points, mobs ]
 
-    let stairs = addMob( POINT_TYPE_STAIRS, 1, '>' )
+    let stairs = addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
 
     for( let i = 0; i < monsterCount; i++ ){
-      addMob( POINT_TYPE_MONSTER, 1, 'm' )
+      addMob( POINT_TYPE_MONSTER, 1, CHAR_MONSTER )
     }
   } 
 
@@ -241,7 +251,7 @@ let G = () => {
           A wall - # - is just an absence of anything else
         */
         c.fillText( 
-          current ? current[ CHAR ] : '#', vX * textSize, vY * textSize 
+          current ? current[ CHAR ] : CHAR_WALL, vX * textSize, vY * textSize 
         )
       }
     }
