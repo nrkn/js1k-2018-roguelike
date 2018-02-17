@@ -1,0 +1,10 @@
+{
+  "name": "js1k-2018-roguelike",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "Nik Coughlin <nrkn.com@gmail.com>",
+  "license": "MIT"
+}
