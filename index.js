@@ -96,8 +96,8 @@ let G = () => {
     for( let i = 0; i < tiles.length; i++ ){
       if( 
         tiles[ i ][ HP ] && 
-        point[ X ] === tiles[ i ][ X ] && 
-        point[ Y ] === tiles[ i ][ Y ] 
+        point[ X ] == tiles[ i ][ X ] && 
+        point[ Y ] == tiles[ i ][ Y ] 
       ) return tiles[ i ]
     }
   }
@@ -194,7 +194,7 @@ let G = () => {
         Start with player
       */
       let p = 
-        i === 0 ? player : [ randInt( levelWidth ), randInt( levelHeight ) ]
+        i == 0 ? player : [ randInt( levelWidth ), randInt( levelHeight ) ]
     
       if( floors.length ){
         connect( p, floors[ randInt( floors.length ) ] )
@@ -274,7 +274,7 @@ let G = () => {
       but is also very cheap - the chance not to move towards player helps to
       stop monsters getting permanently stuck
     */
-    if( mob[ TILE_TYPE ] === TILE_TYPE_MONSTER && randInt( 5 ) ){
+    if( mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 5 ) ){
       if( player[ X ] < mob[ X ] ){
         targetPoint[ X ]--
       } 
@@ -294,19 +294,19 @@ let G = () => {
       */
 
       //up
-      if( direction === 1 ){
+      if( direction == 1 ){
         targetPoint[ Y ]--
       } 
       //right
-      else if( direction === 2 ){
+      else if( direction == 2 ){
         targetPoint[ X ]++
       } 
       //down
-      else if( direction === 3 ){
+      else if( direction == 3 ){
         targetPoint[ Y ]++
       } 
       //left
-      else if( direction === 0 ){
+      else if( direction == 0 ){
         targetPoint[ X ]--
       }
     }
@@ -321,8 +321,8 @@ let G = () => {
       try to hit them instead of moving there
     */
     if( 
-      currentTile && mob[ TILE_TYPE ] === TILE_TYPE_MONSTER && 
-      currentTile[ TILE_TYPE ] === TILE_TYPE_PLAYER && randInt( 2 ) 
+      currentTile && mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && 
+      currentTile[ TILE_TYPE ] == TILE_TYPE_PLAYER && randInt( 2 ) 
     ){
       currentTile[ HP ]--
     } 
@@ -330,15 +330,15 @@ let G = () => {
       Ditto for player moving onto monster
     */
     else if( 
-      currentTile && mob[ TILE_TYPE ] === TILE_TYPE_PLAYER && 
-      currentTile[ TILE_TYPE ] === TILE_TYPE_MONSTER && randInt( 2 ) 
+      currentTile && mob[ TILE_TYPE ] == TILE_TYPE_PLAYER && 
+      currentTile[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 2 ) 
     ){
       currentTile[ HP ]--
     }
     /*
       Go down stairs
     */
-    else if( currentTile && currentTile[ TILE_TYPE ] === TILE_TYPE_STAIRS_DOWN ){
+    else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_DOWN ){
       currentLevel++
       Dungeon()
     }
@@ -367,7 +367,7 @@ let G = () => {
     for( let i = 0; i < levels[ currentLevel ][ MOBS ].length; i++ ){
       if( 
         levels[ currentLevel ][ MOBS ][ i ][ HP ] && 
-        levels[ currentLevel ][ MOBS ][ i ][ TILE_TYPE ] === TILE_TYPE_MONSTER 
+        levels[ currentLevel ][ MOBS ][ i ][ TILE_TYPE ] == TILE_TYPE_MONSTER 
       ) move( levels[ currentLevel ][ MOBS ][ i ], randInt( 4 ) )
     }
 
