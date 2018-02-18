@@ -20,9 +20,11 @@ unlikely in 1K
 
 ## v0.0.1
 
+```
 10,045 raw
  1,279 minified
    887 packed
+```
 
 - decent dungeons that look like dungeons
 - monsters and combat
@@ -31,9 +33,11 @@ unlikely in 1K
 
 New versioning - each feature increments minor by 1, better golfing patch by 1
 
+```
 10,978 raw
  1,436 minifed
    958 packed
+```
 
 - decent dungeons that look like dungeons
 - monsters and combat
