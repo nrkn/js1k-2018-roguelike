@@ -367,15 +367,19 @@ let G = () => {
     /*
       Go down stairs
     */
-    else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_DOWN ){
+    else if( 
+      currentTile && mob[ TILE_TYPE ] == TILE_TYPE_PLAYER &&
+      currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_DOWN 
+    ){
       currentLevel++
       Dungeon()
     }
     /*
-      Potion
+      Potion - note that monsters can also pick up potions - to change, check
+      if mob is player
     */
     else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_POTION ){
-      player[ HP ]++
+      mob[ HP ]++
       currentTile[ HP ]--
     }
     /*
