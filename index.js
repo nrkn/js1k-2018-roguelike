@@ -24,6 +24,7 @@ let G = () => {
   let TILE_TYPE_MONSTER = 1
   let TILE_TYPE_STAIRS_DOWN = 2
   let TILE_TYPE_FLOOR = 3
+  let TILE_TYPE_POTION = 4
   /*
     Indices into level structure
   */
@@ -38,7 +39,7 @@ let G = () => {
   let CHAR_MONSTER = 'm'
   let CHAR_STAIRS_DOWN = '>'
   let CHAR_STAIRS_UP = '<'
-  let CHAR_HEAL = '!'
+  let CHAR_POTION = '!'
   
   /*
     Dungeon settings
@@ -55,9 +56,15 @@ let G = () => {
   let height = 50
   let minRoomSize = 1
   let maxRoomSize = 10
-  let roomCount = 5
+  let roomCount = 10
   let monsterCount = 5
-  let playerStartHP = 20
+  let playerStartHP = 10
+
+  let debug = false
+
+  if( debug ){
+    playerStartHP = 1000
+  }
 
   /*
     Bog-standard exlusive max based random integer function
@@ -114,10 +121,11 @@ let G = () => {
     let floors = []
     let mobs = [ player ]
 
-    let levelWidth = randInt( currentLevel * 25 ) + width
-    let levelHeight = randInt( currentLevel * 25 ) + height
-    let levelRooms = randInt( currentLevel * roomCount ) + roomCount
-    let levelMonsters = randInt( currentLevel * monsterCount ) + monsterCount
+    let levelWidth = randInt( currentLevel * width ) + width
+    let levelHeight = randInt( currentLevel * height ) + height
+    let levelRooms = randInt( 2 * currentLevel * roomCount ) + roomCount
+    let levelMonsters = randInt( 2 * currentLevel * monsterCount ) + monsterCount
+    let levelPotions = randInt( currentLevel * monsterCount ) + monsterCount
 
     /*
       Add a new mob, even stairs are mobs to save bytes
@@ -219,6 +227,10 @@ let G = () => {
 
     for( let i = 0; i < levelMonsters; i++ ){
       addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER )
+    }
+
+    for( let i = 0; i < levelPotions; i++ ){
+      addMob( TILE_TYPE_POTION, 1, CHAR_POTION )
     }
   } 
 
@@ -341,6 +353,13 @@ let G = () => {
     else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_DOWN ){
       currentLevel++
       Dungeon()
+    }
+    /*
+      Potion
+    */
+    else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_POTION ){
+      player[ HP ]++
+      currentTile[ HP ]--
     }
     /*
       If this is a floor tile and no mobs were here, we can move
