@@ -17,6 +17,7 @@ let G = () => {
   let TILE_TYPE = 2
   let HP = 3
   let CHAR = 4
+  let SEEN = 5
   /*
     Tile types
   */
@@ -25,6 +26,7 @@ let G = () => {
   let TILE_TYPE_STAIRS_DOWN = 2
   let TILE_TYPE_FLOOR = 3
   let TILE_TYPE_POTION = 4
+  let TILE_TYPE_WALL = 5
   /*
     Indices into level structure
   */
@@ -76,6 +78,7 @@ let G = () => {
   */
   let viewSize = 25
   let viewOff = 12 // ( viewSize - 1 ) / 2
+  let fov = 8
 
   /*
     Level state
@@ -260,17 +263,23 @@ let G = () => {
           collides( levels[ currentLevel ][ MOBS ], [ x, y ] ) || 
           collides( levels[ currentLevel ][ FLOORS ], [ x, y ] )
 
-        /*
-          A wall - # - is just an absence of anything else
-        */
+        if( !current ){
+          levels[ currentLevel ][ MOBS ].push( [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL ] )
+          current = collides( levels[ currentLevel ][ MOBS ], [ x, y ] )
+        }          
+
+        if( vX >= fov && vY >= fov && vX < ( viewSize - fov ) && vY < ( viewSize - fov ) ){
+          current[ SEEN ] = 1
+        }
+  
         c.fillText( 
           currentLevel > 9 ?
           '*' :
           player[ HP ] < 1 ?
           'X' :
-          current ? 
+          current[ SEEN ] ? 
           current[ CHAR ] : 
-          CHAR_WALL, 
+          ' ', 
           vX * textSize, 
           vY * textSize 
         )
