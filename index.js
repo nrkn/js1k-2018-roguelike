@@ -53,13 +53,13 @@ let G = () => {
     a room (the randomly chosen point for that room), and not the total min/max 
     for a room
   */  
-  let width = 100
-  let height = 100
+  let width = 50
+  let height = 50
   let minSize = 1
-  let maxSize = 15
-  let roomCount = 10
-  let monsterCount = 10
-  let playerStartHP = 10
+  let maxSize = 10
+  let roomCount = 5
+  let monsterCount = 5
+  let playerStartHP = 20
 
   /*
     Bog-standard exlusive max based random integer function
@@ -118,8 +118,8 @@ let G = () => {
 
     let levelWidth = randInt( currentLevel * 25 ) + width
     let levelHeight = randInt( currentLevel * 25 ) + height
-    let levelRooms = randInt( currentLevel * 25 ) + roomCount
-    let levelMonsters = randInt( currentLevel * 25 ) + monsterCount
+    let levelRooms = randInt( currentLevel * roomCount ) + roomCount
+    let levelMonsters = randInt( currentLevel * monsterCount ) + monsterCount
 
     /*
       Add a new mob, even stairs are mobs to save bytes
@@ -212,7 +212,8 @@ let G = () => {
     
     levels[ currentLevel ] = [ points, mobs ]
 
-    let stairs = addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
+    // would be nice to not have stairs in corridors
+    addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
 
     for( let i = 0; i < monsterCount; i++ ){
       addMob( POINT_TYPE_MONSTER, 1, CHAR_MONSTER )
