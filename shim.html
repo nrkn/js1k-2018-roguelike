@@ -146,32 +146,37 @@
   This function closure is just for the minifier so it knows it's OK to rename
   variables - can remove before packing
 */
+'use strict'
+
+/*
+  This function closure is just for the minifier so it knows it's OK to rename
+  variables - can remove before packing
+*/
 let G = () => {
   /*
     Constants - these will get inlined by the minifier but make it a lot more
     readable
   */
   /*
-    These are indices into "point" structures - so-called, because they also
-    hold the type, HP, character to draw etc.
+    These are indices into tiles
   */
   let X = 0
   let Y = 1
-  let POINT_TYPE = 2
+  let TILE_TYPE = 2
   let HP = 3
   let CHAR = 4
   /*
-    Point types, pseudo-enum
+    Tile types
   */
-  let POINT_TYPE_PLAYER = 0
-  let POINT_TYPE_MONSTER = 1
-  let POINT_TYPE_STAIRS = 2
-  let POINT_TYPE_FLOOR = 3
+  let TILE_TYPE_PLAYER = 0
+  let TILE_TYPE_MONSTER = 1
+  let TILE_TYPE_STAIRS_DOWN = 2
+  let TILE_TYPE_FLOOR = 3
   /*
     Indices into level structure
   */
-  let LEVEL_FLOORS = 0
-  let LEVEL_MOBS = 1
+  let FLOORS = 0
+  let MOBS = 1
   /*
     Symbols
   */
@@ -191,14 +196,13 @@ let G = () => {
     done, to save bytes - the draw algorithm and movement checks are designed 
     around points being potentially at any coordinate including negative ones
 
-    minSize and maxSize are the min/max in each direction from the "center" of
-    a room (the randomly chosen point for that room), and not the total min/max 
-    for a room
+    minRoomSize and maxRoomSize are the min/max in each direction from the 
+    "center" of a room and not the total min/max size for a room
   */  
   let width = 50
   let height = 50
-  let minSize = 1
-  let maxSize = 10
+  let minRoomSize = 1
+  let maxRoomSize = 10
   let roomCount = 5
   let monsterCount = 5
   let playerStartHP = 20
@@ -206,13 +210,13 @@ let G = () => {
   /*
     Bog-standard exlusive max based random integer function
   */
-  let randInt = exclMax => ( Math.random() * exclMax ) | 0
+  let randInt = exclusiveMax => ( Math.random() * exclusiveMax ) | 0
       
   /*
     View settings
   */
   let viewSize = 25
-  let viewOff = 12
+  let viewOff = 12 // ( viewSize - 1 ) / 2
 
   /*
     Level state
@@ -221,13 +225,13 @@ let G = () => {
   let levels = []
   let player = [ 
     randInt( width ), randInt( height ), 
-    POINT_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
+    TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
   ]
   
   /*
-    Is there a point in collection that collides with the provided point?
+    Is there a tile in collection that collides with the provided point?
     
-    Also check the hit points and don't consider "dead" points to collide
+    Also check the hit points and don't consider "dead" tiles for collision
     
     This lets us kill monsters without deleting them from the array, which is
     expensive - we just don't collide with or draw dead things
@@ -236,13 +240,13 @@ let G = () => {
 
     Same as points.find( ... ) but reuse for(;;) syntax for better packing
   */
-  let collides = ( points, p ) => {
-    for( let i = 0; i < points.length; i++ ){
+  let collides = ( tiles, point ) => {
+    for( let i = 0; i < tiles.length; i++ ){
       if( 
-        points[ i ][ HP ] && 
-        p[ X ] === points[ i ][ X ] && 
-        p[ Y ] === points[ i ][ Y ] 
-      ) return points[ i ]
+        tiles[ i ][ HP ] && 
+        point[ X ] === tiles[ i ][ X ] && 
+        point[ Y ] === tiles[ i ][ Y ] 
+      ) return tiles[ i ]
     }
   }
 
@@ -255,7 +259,7 @@ let G = () => {
     */
     // if( levels[ currentLevel ] ) return
    
-    let points = []
+    let floors = []
     let mobs = [ player ]
 
     let levelWidth = randInt( currentLevel * 25 ) + width
@@ -266,18 +270,21 @@ let G = () => {
     /*
       Add a new mob, even stairs are mobs to save bytes
     */
-    let addMob = ( pointType, hp, ch ) => {
-      let mob = [ randInt( levelWidth ), randInt( levelHeight ), pointType, hp, ch ]
+    let addMob = ( tileType, hp, ch ) => {
+      let mob = [ 
+        randInt( levelWidth ), randInt( levelHeight ), 
+        tileType, hp, ch 
+      ]
       
       /*
-        Has to collide with a floor tile to be on map, but also has to be the only 
-        mob at this point on the map
+        Has to collide with a floor tile to be on map, but also has to be the
+        only mob at this point on the map
       */
       if( 
-        collides( levels[ currentLevel ][ LEVEL_FLOORS ], mob ) && 
-        !collides( levels[ currentLevel ][ LEVEL_MOBS ], mob ) 
+        collides( levels[ currentLevel ][ FLOORS ], mob ) && 
+        !collides( levels[ currentLevel ][ MOBS ], mob ) 
       ){
-        levels[ currentLevel ][ LEVEL_MOBS ].push( mob )
+        levels[ currentLevel ][ MOBS ].push( mob )
 
         return mob
       } 
@@ -285,7 +292,7 @@ let G = () => {
       /*
         Call recursively if couldn't place, saves a while loop
       */
-      return addMob( pointType, hp, ch )    
+      return addMob( tileType, hp, ch )    
     }
 
     let drawRect = ( p1, p2 ) => {
@@ -312,7 +319,7 @@ let G = () => {
           /*
             Even a floor has to have HP to get drawn
           */
-          points.push( [ x, y, POINT_TYPE_FLOOR, 1, CHAR_FLOOR ] )          
+          floors.push( [ x, y, TILE_TYPE_FLOOR, 1, CHAR_FLOOR ] )          
         }
       }
     }
@@ -334,35 +341,36 @@ let G = () => {
       /*
         Start with player
       */
-      let p = i === 0 ? [ player[ X ], player[ Y ] ] : [ randInt( levelWidth ), randInt( levelHeight ) ]
+      let p = 
+        i === 0 ? 
+        [ player[ X ], player[ Y ] ] :  // can just use player here?
+        [ randInt( levelWidth ), randInt( levelHeight ) ]
     
-      if( points.length ){
-        connect( p, points[ randInt( points.length ) ] )
+      if( floors.length ){
+        connect( p, floors[ randInt( floors.length ) ] )
       }
     
       drawRect( 
         [ 
-          p[ X ] - ( randInt( maxSize ) + minSize ),
-          p[ Y ] - ( randInt( maxSize ) + minSize )
+          p[ X ] - ( randInt( maxRoomSize ) + minRoomSize ),
+          p[ Y ] - ( randInt( maxRoomSize ) + minRoomSize )
         ], 
         [ 
-          p[ X ] + ( randInt( maxSize ) + minSize ),
-          p[ Y ] + ( randInt( maxSize ) + minSize )
+          p[ X ] + ( randInt( maxRoomSize ) + minRoomSize ),
+          p[ Y ] + ( randInt( maxRoomSize ) + minRoomSize )
         ] 
       )
     }
     
-    levels[ currentLevel ] = [ points, mobs ]
+    levels[ currentLevel ] = [ floors, mobs ]
 
     // would be nice to not have stairs in corridors
-    addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
+    addMob( TILE_TYPE_STAIRS_DOWN, 1, CHAR_STAIRS_DOWN )
 
-    for( let i = 0; i < monsterCount; i++ ){
-      addMob( POINT_TYPE_MONSTER, 1, CHAR_MONSTER )
+    for( let i = 0; i < levelMonsters; i++ ){
+      addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER )
     }
   } 
-
-  Dungeon()
 
   /*
     Almost like a raycaster, we create a viewport centered on the player and
@@ -387,8 +395,8 @@ let G = () => {
         let y = player[ Y ] - viewOff + vY
 
         let current = 
-          collides( levels[ currentLevel ][ LEVEL_MOBS ], [ x, y ] ) || 
-          collides( levels[ currentLevel ][ LEVEL_FLOORS ], [ x, y ] )
+          collides( levels[ currentLevel ][ MOBS ], [ x, y ] ) || 
+          collides( levels[ currentLevel ][ FLOORS ], [ x, y ] )
 
         /*
           A wall - # - is just an absence of anything else
@@ -404,11 +412,11 @@ let G = () => {
   /*
     Movement for both payers and monsters
   */
-  let move = ( p, which ) => {    
+  let move = ( mob, direction ) => {    
     /*
       set the position we're going to move to to the position we're already at
     */
-    let newP = [ p[ X ], p[ Y ] ]
+    let targetPoint = [ mob[ X ], mob[ Y ] ]
 
     /*
       Monsters, one in five chance doesn't move towards player, otherwise try to
@@ -416,72 +424,71 @@ let G = () => {
       but is also very cheap - the chance not to move towards player helps to
       stop monsters getting permanently stuck
     */
-    if( p[ POINT_TYPE ] === POINT_TYPE_MONSTER && randInt( 5 ) ){
-      if( player[ X ] < p[ X ] ){
-        newP[ X ]--
+    if( mob[ TILE_TYPE ] === TILE_TYPE_MONSTER && randInt( 5 ) ){
+      if( player[ X ] < mob[ X ] ){
+        targetPoint[ X ]--
       } 
-      else if( player[ X ] > p[ X ] ){
-        newP[ X ]++
+      else if( player[ X ] > mob[ X ] ){
+        targetPoint[ X ]++
       } 
-      else if( player[ Y ] < p[ Y ] ){
-        newP[ Y ]--        
+      else if( player[ Y ] < mob[ Y ] ){
+        targetPoint[ Y ]--        
       } 
-      else if( player[ Y ] > p[ Y ] ){
-        newP[ Y ]++
+      else if( player[ Y ] > mob[ Y ] ){
+        targetPoint[ Y ]++
       }
     } else {
       /*
         This block is for the player, or for monsters who are moving randomly
-        We use the keyboard codes for arrow keys even for monster movement, 
         it saves bytes
       */
 
       //up
-      if( which === 1 ){
-        newP[ Y ]--
+      if( direction === 1 ){
+        targetPoint[ Y ]--
       } 
       //right
-      else if( which === 2 ){
-        newP[ X ]++
+      else if( direction === 2 ){
+        targetPoint[ X ]++
       } 
       //down
-      else if( which === 3 ){
-        newP[ Y ]++
+      else if( direction === 3 ){
+        targetPoint[ Y ]++
       } 
       //left
-      else if( which === 0 ){
-        newP[ X ]--
+      else if( direction === 0 ){
+        targetPoint[ X ]--
       }
     }
     
     /*
       See if anything is at the point we tried to move to
     */
-    let point = collides( levels[ currentLevel ][ LEVEL_MOBS ], newP )
+    let currentTile = collides( levels[ currentLevel ][ MOBS ], targetPoint )
 
     /*
       If we're a monster and the tile we tried to move to has a player on it,
       try to hit them instead of moving there
     */
     if( 
-      point && p[ POINT_TYPE ] === POINT_TYPE_MONSTER && 
-      point[ POINT_TYPE ] === POINT_TYPE_PLAYER && randInt( 2 ) 
+      currentTile && mob[ TILE_TYPE ] === TILE_TYPE_MONSTER && 
+      currentTile[ TILE_TYPE ] === TILE_TYPE_PLAYER && randInt( 2 ) 
     ){
-      point[ HP ]--
+      currentTile[ HP ]--
     } 
     /*
       Ditto for player moving onto monster
     */
     else if( 
-      point && p[ POINT_TYPE ] === POINT_TYPE_PLAYER && 
-      point[ POINT_TYPE ] === POINT_TYPE_MONSTER && randInt( 2 ) 
+      currentTile && mob[ TILE_TYPE ] === TILE_TYPE_PLAYER && 
+      currentTile[ TILE_TYPE ] === TILE_TYPE_MONSTER && randInt( 2 ) 
     ){
-      point[ HP ]--
+      currentTile[ HP ]--
     }
     /*
       Go down stairs
     */
-    else if( point && point[ POINT_TYPE ] === POINT_TYPE_STAIRS ){
+    else if( currentTile && currentTile[ TILE_TYPE ] === TILE_TYPE_STAIRS_DOWN ){
       currentLevel++
       Dungeon()
     }
@@ -489,10 +496,10 @@ let G = () => {
       If this is a floor tile and no mobs were here, we can move
     */
     else if( 
-      collides( levels[ currentLevel ][ LEVEL_FLOORS ], newP ) && !point 
+      collides( levels[ currentLevel ][ FLOORS ], targetPoint ) && !currentTile 
     ){
-      p[ X ] = newP[ X ]
-      p[ Y ] = newP[ Y ]
+      mob[ X ] = targetPoint[ X ]
+      mob[ Y ] = targetPoint[ Y ]
     } 
   }
   
@@ -507,11 +514,11 @@ let G = () => {
       Monsters prefer to move towards player but there's a chance they'll use
       this passed in random "keycode" instead
     */
-    for( let i = 0; i < levels[ currentLevel ][ LEVEL_MOBS ].length; i++ ){
+    for( let i = 0; i < levels[ currentLevel ][ MOBS ].length; i++ ){
       if( 
-        levels[ currentLevel ][ LEVEL_MOBS ][ i ][ HP ] && 
-        levels[ currentLevel ][ LEVEL_MOBS ][ i ][ POINT_TYPE ] === POINT_TYPE_MONSTER 
-      ) move( levels[ currentLevel ][ LEVEL_MOBS ][ i ], randInt( 4 ) )
+        levels[ currentLevel ][ MOBS ][ i ][ HP ] && 
+        levels[ currentLevel ][ MOBS ][ i ][ TILE_TYPE ] === TILE_TYPE_MONSTER 
+      ) move( levels[ currentLevel ][ MOBS ][ i ], randInt( 4 ) )
     }
 
     /*
@@ -524,13 +531,11 @@ let G = () => {
     }  
 
     /*
-    // 1% chance every move of spawn monster
-    if( !randInt( 100 ) ){
-      monsters.push( addMob( POINT_TYPE_MONSTER, 1, 'm' ) )         
-    } 
+    consider adding chance to spawn a monster on movement
     */
   }
 
+  Dungeon()
   draw()    
 }
 
