@@ -123,8 +123,8 @@ let G = () => {
 
     let levelWidth = randInt( currentLevel * width ) + width
     let levelHeight = randInt( currentLevel * height ) + height
-    let levelRooms = randInt( 2 * currentLevel * roomCount ) + roomCount
-    let levelMonsters = randInt( 2 * currentLevel * monsterCount ) + monsterCount
+    let levelRooms = randInt( currentLevel * roomCount ) + roomCount
+    let levelMonsters = randInt( currentLevel * monsterCount ) + monsterCount
     let levelPotions = randInt( currentLevel * monsterCount ) + monsterCount
 
     /*
