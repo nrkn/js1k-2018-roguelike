@@ -2,17 +2,17 @@
 
 Add from top to bottom until we run out of bytes or patience
 
-- decent dungeons that look like dungeons
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-- healing potions
-- win if reach bottom
+- ~~decent dungeons that look like dungeons~~
+- ~~monsters and combat~~
+- ~~multiple dungeon levels with difficulty progression~~
+- ~~healing potions~~
+- ~~win if reach bottom~~
 - multiple monster types
 - fov
 - emoji
 - colors
 - weapons/armor
-- move up and down stairs
+- move up **and** down stairs
 - win if reach bottom and return to top
 - gold
 - shop (level 0) - only fun if weight limit on carrying items and can sell then

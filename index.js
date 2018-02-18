@@ -265,9 +265,9 @@ let G = () => {
         */
         c.fillText( 
           currentLevel > 9 ?
-          '🏆' :
+          '*' :
           player[ HP ] < 1 ?
-          '💀' :
+          'X' :
           current ? 
           current[ CHAR ] : 
           CHAR_WALL, 
