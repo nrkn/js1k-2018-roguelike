@@ -9,6 +9,7 @@ Add from top to bottom until we run out of bytes or patience
 - win if reach bottom
 - multiple monster types
 - fov
+- emoji
 - colors
 - weapons/armor
 - move up and down stairs
@@ -57,3 +58,17 @@ New versioning - each feature increments minor by 1, better golfing patch by 1
 - monsters and combat
 - multiple dungeon levels with difficulty progression
 - healing potions
+
+## v0.4.0
+
+```
+11,528 raw
+ 1,486 minifed
+ 1,018 packed
+```
+
+- decent dungeons that look like dungeons
+- monsters and combat
+- multiple dungeon levels with difficulty progression
+- healing potions
+- win if reach bottom

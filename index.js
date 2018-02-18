@@ -264,7 +264,15 @@ let G = () => {
           A wall - # - is just an absence of anything else
         */
         c.fillText( 
-          current ? current[ CHAR ] : CHAR_WALL, vX * textSize, vY * textSize 
+          currentLevel > 9 ?
+          '🏆' :
+          player[ HP ] < 1 ?
+          '💀' :
+          current ? 
+          current[ CHAR ] : 
+          CHAR_WALL, 
+          vX * textSize, 
+          vY * textSize 
         )
       }
     }
@@ -390,15 +398,7 @@ let G = () => {
       ) move( levels[ currentLevel ][ MOBS ][ i ], randInt( 4 ) )
     }
 
-    /*
-      Stop drawing when the player dies, game over - we're not communicating 
-      well here but it's so cheap. If we have room later a message would be
-      better
-    */
-    if( player[ HP ] > 0 ){
-      draw()
-    }  
-
+    draw()
     /*
     consider adding chance to spawn a monster on movement
     */
