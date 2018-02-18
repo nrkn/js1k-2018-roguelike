@@ -215,7 +215,7 @@ let G = () => {
     // would be nice to not have stairs in corridors
     addMob( POINT_TYPE_STAIRS, 1, CHAR_STAIRS_DOWN )
 
-    for( let i = 0; i < monsterCount; i++ ){
+    for( let i = 0; i < levelMonsters; i++ ){
       addMob( POINT_TYPE_MONSTER, 1, CHAR_MONSTER )
     }
   } 
