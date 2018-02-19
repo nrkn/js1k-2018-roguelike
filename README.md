@@ -93,9 +93,9 @@ Changed to use cave system instead of rooms to save many bytes
 ## v0.6.0
 
 ```
-12,578 raw
- 1,494 minified
- 1,020 packed
+12,566 raw
+ 1,490 minified
+ 1,016 packed
 ```
 
 - decent caves that look like caves

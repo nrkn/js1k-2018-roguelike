@@ -292,6 +292,9 @@ let draw = () => {
   */
   a.width=a.width
 
+  let dead = player[ HP ] < 1
+  let won = currentLevel > 9
+
   /*
     Iterate over tiles in viewport
   */
@@ -337,7 +340,7 @@ let draw = () => {
 
         -nb can optimize by inverting and using same tests as below?        
       */
-      c.fillStyle = player[ HP ] > 0 && currentLevel < 10 ? current[ COLOR ] : COLOR_WIN
+      c.fillStyle = dead || won ? COLOR_WIN : current[ COLOR ]
 
       /*
         If the player has won, draw $, so the screen will fill up with $
@@ -347,9 +350,9 @@ let draw = () => {
         it, or a space if unseen
       */
       c.fillText( 
-        currentLevel > 9 ?
+        won ?
         CHAR_WIN :
-        player[ HP ] < 1 ?
+        dead ?
         0 :
         current[ SEEN ] ? 
         current[ CHAR ] : 
@@ -364,7 +367,7 @@ let draw = () => {
     Draw status bar if hasn't won or died, showing current level and HP (coins) 
     left
   */
-  if( player[ HP ] > 0 && currentLevel < 10 ){
+  if( !dead && !won ){
     c.fillStyle = '#000'
     c.fillText( 
       1 + currentLevel + ' ¢' + player[ HP ], 0, viewSize * textSize
