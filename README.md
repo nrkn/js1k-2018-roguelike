@@ -1,107 +1,15 @@
-# js1k-2018-roguelike
+# Mines of Crypto RL
 
-Add from top to bottom until we run out of bytes or patience
+A roguelike in 1K of JavaScript
 
-- ~~decent dungeons that look like dungeons~~
-- ~~monsters and combat~~
-- ~~multiple dungeon levels with difficulty progression~~
-- ~~healing potions~~
-- ~~win if reach bottom~~
-- ~~fov~~
-- ~~colors~~
-- move up **and** down stairs
-- multiple monster types
-- emoji
-- weapons/armor
-- win if reach bottom and return to top
-- gold
-- shop (level 0) - only fun if weight limit on carrying items and can sell then
-  use money to buy better armour, weapons
+You are a miner, entering the Mines of Crypto to attempt to make your fortune
 
-Really needs inventory/shop to be a decent if minimal roguelike, but seems 
-unlikely in 1K
+Advance to the deepest level of the mine and find the `$` to solve the 
+blockchain and win the game
 
-## v0.0.1
+If you run out of coins, you can't continue mining, so make sure to keep plenty 
+on hand
 
-```
-10,045 raw
- 1,279 minified
-   887 packed
-```
+Watch out for your fellow miners! They'll steal your coins if they can
 
-- decent dungeons that look like dungeons
-- monsters and combat
-
-## v0.2.0
-
-New versioning - each feature increments minor by 1, better golfing patch by 1
-
-```
-10,978 raw
- 1,436 minified
-   958 packed
-```
-
-- decent dungeons that look like dungeons
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-
-## v0.3.0
-
-```
-11,608 raw
- 1,473 minified
-   999 packed
-```
-
-- decent dungeons that look like dungeons
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-- healing potions
-
-## v0.4.0
-
-```
-11,528 raw
- 1,486 minified
- 1,018 packed
-```
-
-- decent dungeons that look like dungeons
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-- healing potions
-- win if reach bottom
-
-## v0.5.0
-
-```
-10,297 raw
- 1,433 minified
-   982 packed
-```
-
-Changed to use cave system instead of rooms to save many bytes
-
-- decent caves that look like caves
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-- healing potions
-- win if reach bottom
-- fov
-
-## v0.6.0
-
-```
-12,566 raw
- 1,490 minified
- 1,016 packed
-```
-
-- decent caves that look like caves
-- monsters and combat
-- multiple dungeon levels with difficulty progression
-- healing potions
-- win if reach bottom
-- fov
-- colors
+Arrow keys to move, reload to restart

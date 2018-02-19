@@ -40,13 +40,13 @@ let CHAR_WIN = '$'
 /*
   Colors
 */
-let COLOR_PLAYER = '#000'
+let COLOR_PLAYER = '#39f'
 let COLOR_WALL = '#aaa'
 let COLOR_FLOOR = '#aaa'
-let COLOR_MONSTER = '#000'
+let COLOR_MONSTER = '#f00'
 let COLOR_STAIRS_DOWN = '#000'
 let COLOR_POTION = '#f90'
-let COLOR_WIN = '#f90'
+let COLOR_WIN = '#39f'
 
 /*
   Dungeon settings
