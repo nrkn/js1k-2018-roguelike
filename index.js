@@ -3,7 +3,8 @@
   readable
 */
 /*
-  These are indices into tiles
+  These are indices into tile structures, where the structure is an array
+  It's cheaper and packs better if every complex structure is an array
 */
 let X = 0
 let Y = 1
@@ -51,26 +52,16 @@ let COLOR_WIN = '#f90'
   Dungeon settings
 
   width and height are the bounds for randomly placing initial points for 
-  rooms, but aside from placing those initial points, no bounding checks are 
+  waypoints, but aside from placing those initial points, no bounding checks are 
   done, to save bytes - the draw algorithm and movement checks are designed 
   around points being potentially at any coordinate including negative ones
-
-  minRoomSize and maxRoomSize are the min/max in each direction from the 
-  "center" of a room and not the total min/max size for a room
 */  
 let width = 10
 let height = 10
-let minRoomSize = 1
-let maxRoomSize = 5
 let roomCount = 2
 let monsterCount = 2
 let playerStartHP = 10
-
-/*
-  Bog-standard exlusive max based random integer function
-*/
-let randInt = exclusiveMax => ( Math.random() * exclusiveMax ) | 0
-    
+  
 /*
   View settings
 */
@@ -79,26 +70,28 @@ let viewOff = 12 // ( viewSize - 1 ) / 2
 let fov = 8
 
 /*
-  Level state
+  Game state
 */
 let currentLevel = 0
 let level
 let player = [ 
-  randInt( width ), randInt( height ), 
-  TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER, COLOR_PLAYER
+  0, 0, TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER, COLOR_PLAYER
 ]
+
+/*
+  Bog-standard exlusive max random integer function
+*/
+let randInt = exclusiveMax => ( Math.random() * exclusiveMax ) | 0
 
 /*
   Is there a tile in collection that collides with the provided point?
   
   Also check the hit points and don't consider "dead" tiles for collision
   
-  This lets us kill monsters without deleting them from the array, which is
-  expensive - we just don't collide with or draw dead things
+  This lets us kill monsters, pick up potions etc without deleting them from the 
+  array, which is expensive - we just don't collide with or draw dead things
 
   Has strange side effect whereby floors etc need HP in order to be drawn haha
-
-  Same as points.find( ... ) but reuse for(;;) syntax for better packing
 */
 let collides = ( tiles, point ) => {
   for( let i = 0; i < tiles.length; i++ ){
@@ -110,6 +103,13 @@ let collides = ( tiles, point ) => {
   }
 }
 
+/*
+  Move p2 - mutates this point rather than returns a new one, cheaper
+
+  If towards is truthy it moves towards p1
+
+  Otherwise, it moves according to the direction passed
+*/
 let towardsOrDirection = ( p1, p2, direction, towards ) => {
   if( towards ){
     if( p1[ X ] < p2[ X ] ){
@@ -125,6 +125,9 @@ let towardsOrDirection = ( p1, p2, direction, towards ) => {
       p2[ Y ]++
     }
   } else {
+    /*
+      This order is chosen to match the order of the key codes for arrow keys
+    */
     //up
     if( direction == 1 ){
       p2[ Y ]--
@@ -145,17 +148,22 @@ let towardsOrDirection = ( p1, p2, direction, towards ) => {
 }
 
 /*
-  Dungeon generator
+  Level generator
 */
-let Dungeon = () => {    
-
+let NewLevel = () => {    
   level = [
+    // floor tiles - always have a floor tile for the player
     [
       [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR, COLOR_FLOOR ]
     ],
+    // mobs - start with just player
     [ player ]
   ]
 
+  /* 
+    Cave more likely to be larger and have more monsters etc as you move down
+    the levels
+  */
   let levelWidth = randInt( currentLevel * width ) + width
   let levelHeight = randInt( currentLevel * height ) + height
   let levelRooms = randInt( currentLevel * roomCount ) + roomCount
@@ -166,6 +174,7 @@ let Dungeon = () => {
     Add a new mob, even stairs are mobs to save bytes
   */
   let addMob = ( tileType, hp, ch, color ) => {
+    // new mob at random location
     let mob = [ 
       randInt( levelWidth ), randInt( levelHeight ), 
       tileType, hp, ch, color
@@ -190,33 +199,58 @@ let Dungeon = () => {
     return addMob( tileType, hp, ch, color )    
   }
   
-  // draw an L-shaped corridor between these two points
+  /*
+    Modified drunkard's walk algorithm to tunnel out a cave between p1 and p2
+  */ 
   let connect = ( p1, p2 ) => {     
+    /*
+      Always place p2 if it doesn't exist
+    */
     if( !collides( level[ FLOORS ], p2 ) ){
       level[ FLOORS ].push(
         [ p2[ X ], p2[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR, COLOR_FLOOR ]
       )
     }
 
+    /*
+      If we reached the goal, stop
+    */
     if( p1[ X ] == p2[ X ] && p1[ Y ] == p2[ Y ] ) return
 
+    /*
+      Pick a random direction to move in
+    */
     let direction = randInt( 4 )
 
+    /* 
+      Either move in that random direction, or 1 in 4 chance it moves towards
+      goal - better to have it move randomly most of the time, or you just end 
+      up with a series of connected L shaped corridors
+    */
     towardsOrDirection( p1, p2, direction, !randInt( 3 ) )
 
+    /*
+      Call again, this will keep happening until we reach the goal
+    */
     connect( p1, p2 )
   } 
 
+  /*
+    Tunnel out several chambers in the cave, between a random point and a
+    randomly selected existing point
+  */
   for( let i = 0; i < levelRooms; i++ ){
     connect( 
       level[ FLOORS ][ randInt( level[ FLOORS ].length ) ], 
       [ randInt( levelWidth ), randInt( levelHeight ) ] 
     )
   }
-  
-  
 
-  // would be nice to not have stairs block corridors
+  /*
+    Would be ideal to not have stairs block corridors as it can make some parts
+    of the map unreachable, but that's exprensive and the levels are at least 
+    always finishable
+  */
   addMob( 
     TILE_TYPE_STAIRS_DOWN, 
     1, 
@@ -224,10 +258,16 @@ let Dungeon = () => {
     currentLevel > 8 ? COLOR_WIN : COLOR_STAIRS_DOWN 
   )
 
+  /*
+    Place monsters at random free floor locations
+  */
   for( let i = 0; i < levelMonsters; i++ ){
     addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER, COLOR_MONSTER )
   }
 
+  /*
+    Place healing potions (coins) at random free floor locations
+  */
   for( let i = 0; i < levelPotions; i++ ){
     addMob( TILE_TYPE_POTION, 1, CHAR_POTION, COLOR_POTION )
   }
@@ -235,9 +275,11 @@ let Dungeon = () => {
 
 /*
   Almost like a raycaster, we create a viewport centered on the player and
-  use the collision algorithm to decide whether to draw or not for each tile, 
-  gets rid of tedious bounds checking etc - super inefficient for the CPU but 
-  good for byte count of code
+  use the collision algorithm to decide what to draw for each tile we hit, 
+  gets rid of tedious bounds checking etc - good for byte count of code but 
+  super inefficient for the CPU. If you have a large viewport and large level 
+  it's very slow, even on a modern machine, but runs OK with the settings we're 
+  using
 */
 let draw = () => {
   /*
@@ -245,17 +287,33 @@ let draw = () => {
   */
   let textSize = 10
 
+  /*
+    Cheapest way to clear canvas?
+  */
   a.width=a.width
 
+  /*
+    Iterate over tiles in viewport
+  */
   for( let vY = 0; vY < viewSize; vY++ ){
     for( let vX = 0; vX < viewSize; vX++ ){
+      /*
+        Normalize the viewport coordinates to map coordinates, centered on the
+        player
+      */
       let x = player[ X ] - viewOff + vX
       let y = player[ Y ] - viewOff + vY
 
+      /*
+        See if we have first a mob, and if not, then a floor here
+      */
       let current = 
         collides( level[ MOBS ], [ x, y ] ) || 
         collides( level[ FLOORS ], [ x, y ] )
 
+      /*
+        If nothing, add a wall at this location, then assign it to current
+      */
       if( !current ){
         level[ MOBS ].push( 
           [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL, COLOR_WALL ] 
@@ -263,6 +321,9 @@ let draw = () => {
         current = collides( level[ MOBS ], [ x, y ] )
       }          
 
+      /*
+        Add the seen flag to all tiles within the field of view
+      */
       if( 
         vX >= fov && vY >= fov && 
         vX < ( viewSize - fov ) && vY < ( viewSize - fov ) 
@@ -270,8 +331,21 @@ let draw = () => {
         current[ SEEN ] = 1
       }
 
+      /*
+        If the player is dead or has won, use the WIN condition color to draw
+        the tile, otherwise use the tile color
+
+        -nb can optimize by inverting and using same tests as below?        
+      */
       c.fillStyle = player[ HP ] > 0 && currentLevel < 10 ? current[ COLOR ] : COLOR_WIN
 
+      /*
+        If the player has won, draw $, so the screen will fill up with $
+        If dead, fill it with zero symbol, it's cheap to draw and gets the point 
+        across
+        Otherwise, if the tile has been seen, draw the character associated with
+        it, or a space if unseen
+      */
       c.fillText( 
         currentLevel > 9 ?
         CHAR_WIN :
@@ -286,10 +360,14 @@ let draw = () => {
     }
   }
 
+  /*
+    Draw status bar if hasn't won or died, showing current level and HP (coins) 
+    left
+  */
   if( player[ HP ] > 0 && currentLevel < 10 ){
     c.fillStyle = '#000'
     c.fillText( 
-      currentLevel + ' ¢' + player[ HP ], 0, viewSize * textSize
+      1 + currentLevel + ' ¢' + player[ HP ], 0, viewSize * textSize
     )
   }
 }
@@ -307,7 +385,7 @@ let move = ( mob, direction ) => {
     Monsters, one in five chance doesn't move towards player, otherwise try to
     move closer - the move algorithm  creates very predictable movement but is 
     also very cheap - the chance not to move towards player helps to stop 
-    monsters getting permanently stuck
+    monsters getting permanently stuck and makes it feel less mechanical
   */
   towardsOrDirection( 
     player, currentPosition, 
@@ -321,7 +399,7 @@ let move = ( mob, direction ) => {
 
   /*
     If we're a monster and the tile we tried to move to has a player on it,
-    try to hit them instead of moving there
+    try to hit them instead of moving there (50% chance)
   */
   if( 
     currentTile && mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && 
@@ -339,25 +417,29 @@ let move = ( mob, direction ) => {
     currentTile[ HP ]--
   }
   /*
-    Go down stairs
+    Player moved on to stairs, create a new level
   */
   else if( 
     currentTile && mob[ TILE_TYPE ] == TILE_TYPE_PLAYER &&
     currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_DOWN 
   ){
     currentLevel++
-    Dungeon()
+    NewLevel()
   }
   /*
     Potion - note that monsters can also pick up potions - to change, check
-    if mob is player
+    if mob is player, but this is more fun for game play as it creates some
+    monsters that are stronger as the monsters traverse the level and get 
+    potions, also situations where the player is trying not to let the monster
+    get it etc
   */
   else if( currentTile && currentTile[ TILE_TYPE ] == TILE_TYPE_POTION ){
     mob[ HP ]++
     currentTile[ HP ]--
   }
   /*
-    If this is a floor tile and no mobs were here, we can move
+    Finally, if nothing else happened and this is a floor tile, we can move the
+    mob onto it
   */
   else if( 
     collides( level[ FLOORS ], currentPosition ) && !currentTile 
@@ -376,7 +458,7 @@ b.onkeydown = e => {
   /*
     Search the mobs for monsters, try to randomly move any that aren't dead
     Monsters prefer to move towards player but there's a chance they'll use
-    this passed in random "keycode" instead
+    this passed in random direction instead
   */
   for( let i = 0; i < level[ MOBS ].length; i++ ){
     if( 
@@ -385,11 +467,14 @@ b.onkeydown = e => {
     ) move( level[ MOBS ][ i ], randInt( 4 ) )
   }
 
-  draw()
   /*
-  consider adding chance to spawn a monster on movement
+    Redraw on movement
   */
+  draw()
 }
 
-Dungeon()
-draw()    
+/*
+  Generate first level, draw initial view
+*/
+NewLevel()
+draw()

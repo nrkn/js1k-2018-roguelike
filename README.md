@@ -8,10 +8,10 @@ Add from top to bottom until we run out of bytes or patience
 - ~~healing potions~~
 - ~~win if reach bottom~~
 - ~~fov~~
+- ~~colors~~
 - move up **and** down stairs
 - multiple monster types
 - emoji
-- colors
 - weapons/armor
 - win if reach bottom and return to top
 - gold
@@ -89,3 +89,19 @@ Changed to use cave system instead of rooms to save many bytes
 - healing potions
 - win if reach bottom
 - fov
+
+## v0.6.0
+
+```
+12,578 raw
+ 1,494 minified
+ 1,020 packed
+```
+
+- decent caves that look like caves
+- monsters and combat
+- multiple dungeon levels with difficulty progression
+- healing potions
+- win if reach bottom
+- fov
+- colors
