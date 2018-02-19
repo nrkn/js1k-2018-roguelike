@@ -17,7 +17,8 @@ let G = () => {
   let TILE_TYPE = 2
   let HP = 3
   let CHAR = 4
-  let SEEN = 5
+  let COLOR = 5
+  let SEEN = 6
   /*
     Tile types
   */
@@ -40,10 +41,19 @@ let G = () => {
   let CHAR_FLOOR = '.'
   let CHAR_MONSTER = 'm'
   let CHAR_STAIRS_DOWN = '>'
-  let CHAR_STAIRS_UP = '<'
   let CHAR_POTION = '¢'
   let CHAR_WIN = '$'
-  
+  /*
+    Colors
+  */
+  let COLOR_PLAYER = '#fff'
+  let COLOR_WALL = '#666'
+  let COLOR_FLOOR = '#666'
+  let COLOR_MONSTER = '#fff'
+  let COLOR_STAIRS_DOWN = '#fff'
+  let COLOR_POTION = '#ff0'
+  let COLOR_WIN = '#ff0'
+
   /*
     Dungeon settings
 
@@ -88,7 +98,7 @@ let G = () => {
   let level
   let player = [ 
     randInt( width ), randInt( height ), 
-    TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
+    TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER, COLOR_PLAYER
   ]
   
   /*
@@ -152,7 +162,7 @@ let G = () => {
   */
   let Dungeon = () => {    
     let floors = [
-      [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
+      [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR, COLOR_FLOOR ]
     ]
     let mobs = [ player ]
 
@@ -165,10 +175,10 @@ let G = () => {
     /*
       Add a new mob, even stairs are mobs to save bytes
     */
-    let addMob = ( tileType, hp, ch ) => {
+    let addMob = ( tileType, hp, ch, color ) => {
       let mob = [ 
         randInt( levelWidth ), randInt( levelHeight ), 
-        tileType, hp, ch 
+        tileType, hp, ch, color
       ]
       
       /*
@@ -187,14 +197,14 @@ let G = () => {
       /*
         Call recursively if couldn't place, saves a while loop
       */
-      return addMob( tileType, hp, ch )    
+      return addMob( tileType, hp, ch, color )    
     }
     
     // draw an L-shaped corridor between these two points
     let connect = ( p1, p2 ) => {     
       if( !collides( floors, p2 ) ){
         floors.push(
-          [ p2[ X ], p2[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
+          [ p2[ X ], p2[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR, COLOR_FLOOR ]
         )
       }
 
@@ -216,15 +226,20 @@ let G = () => {
     
     level = [ floors, mobs ]
 
-    // would be nice to not have stairs in corridors
-    addMob( TILE_TYPE_STAIRS_DOWN, 1, currentLevel > 8 ? CHAR_WIN : CHAR_STAIRS_DOWN )
+    // would be nice to not have stairs block corridors
+    addMob( 
+      TILE_TYPE_STAIRS_DOWN, 
+      1, 
+      currentLevel > 8 ? CHAR_WIN : CHAR_STAIRS_DOWN, 
+      currentLevel > 8 ? COLOR_WIN : COLOR_STAIRS_DOWN 
+    )
 
     for( let i = 0; i < levelMonsters; i++ ){
-      addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER )
+      addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER, COLOR_MONSTER )
     }
 
     for( let i = 0; i < levelPotions; i++ ){
-      addMob( TILE_TYPE_POTION, 1, CHAR_POTION )
+      addMob( TILE_TYPE_POTION, 1, CHAR_POTION, COLOR_POTION )
     }
   } 
 
@@ -240,10 +255,8 @@ let G = () => {
     */
     let textSize = 10
 
-    /*
-      cheapest way to clear canvas?
-    */
-    a.width = a.width
+    c.fillStyle = '#000'
+    c.fillRect( 0, 0, viewSize * textSize, viewSize * textSize )
 
     for( let vY = 0; vY < viewSize; vY++ ){
       for( let vX = 0; vX < viewSize; vX++ ){
@@ -256,7 +269,7 @@ let G = () => {
 
         if( !current ){
           level[ MOBS ].push( 
-            [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL ] 
+            [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL, COLOR_WALL ] 
           )
           current = collides( level[ MOBS ], [ x, y ] )
         }          
@@ -267,6 +280,8 @@ let G = () => {
         ){
           current[ SEEN ] = 1
         }
+
+        c.fillStyle = current[ COLOR ]
   
         c.fillText( 
           currentLevel > 9 ?
@@ -282,10 +297,12 @@ let G = () => {
       }
     }
 
-    if( player[ HP ] > 0 && currentLevel < 11 )
+    if( player[ HP ] > 0 && currentLevel < 11 ){
+      c.fillStyle = '#fff'
       c.fillText( 
-        ( currentLevel + 1 ) + ' ¢' + player[ HP ], 0, viewSize * textSize 
+        ( currentLevel + 1 ) + ' ¢' + player[ HP ], 0, viewSize * textSize - 1
       )
+    }
   }
 
   /*
