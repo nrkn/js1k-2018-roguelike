@@ -27,6 +27,7 @@ let G = () => {
   let TILE_TYPE_FLOOR = 3
   let TILE_TYPE_POTION = 4
   let TILE_TYPE_WALL = 5
+  let TILE_TYPE_STAIRS_UP = 6
   /*
     Indices into level structure
   */
@@ -154,12 +155,18 @@ let G = () => {
     /*
       Allow moving up stairs
     */
-    // if( levels[ currentLevel ] ) return
+    if( levels[ currentLevel ] ) return
    
     let floors = [
       [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
     ]
     let mobs = [ player ]
+
+    if( currentLevel ){
+      mobs.push(
+        [ player[ X ], player[ Y ], TILE_TYPE_STAIRS_UP, 1, CHAR_STAIRS_UP ]
+      )
+    }
 
     let levelWidth = randInt( currentLevel * width ) + width
     let levelHeight = randInt( currentLevel * height ) + height
@@ -347,6 +354,15 @@ let G = () => {
       currentLevel++
       Dungeon()
     }
+    /*
+      Go up stairs
+    */
+    else if( 
+      currentTile && mob[ TILE_TYPE ] == TILE_TYPE_PLAYER &&
+      currentTile[ TILE_TYPE ] == TILE_TYPE_STAIRS_UP
+    ){
+      currentLevel--
+    }    
     /*
       Potion - note that monsters can also pick up potions - to change, check
       if mob is player
