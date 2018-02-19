@@ -85,7 +85,7 @@ let G = () => {
     Level state
   */
   let currentLevel = 0
-  let levels = []
+  let level
   let player = [ 
     randInt( width ), randInt( height ), 
     TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER
@@ -150,12 +150,7 @@ let G = () => {
   /*
     Dungeon generator
   */
-  let Dungeon = () => { 
-    /*
-      Allow moving up stairs
-    */
-    // if( levels[ currentLevel ] ) return
-   
+  let Dungeon = () => {    
     let floors = [
       [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
     ]
@@ -181,10 +176,10 @@ let G = () => {
         only mob at this point on the map
       */
       if( 
-        collides( levels[ currentLevel ][ FLOORS ], mob ) && 
-        !collides( levels[ currentLevel ][ MOBS ], mob ) 
+        collides( level[ FLOORS ], mob ) && 
+        !collides( level[ MOBS ], mob ) 
       ){
-        levels[ currentLevel ][ MOBS ].push( mob )
+        level[ MOBS ].push( mob )
 
         return mob
       } 
@@ -219,7 +214,7 @@ let G = () => {
       )
     }
     
-    levels[ currentLevel ] = [ floors, mobs ]
+    level = [ floors, mobs ]
 
     // would be nice to not have stairs in corridors
     addMob( TILE_TYPE_STAIRS_DOWN, 1, currentLevel > 8 ? CHAR_WIN : CHAR_STAIRS_DOWN )
@@ -256,14 +251,14 @@ let G = () => {
         let y = player[ Y ] - viewOff + vY
 
         let current = 
-          collides( levels[ currentLevel ][ MOBS ], [ x, y ] ) || 
-          collides( levels[ currentLevel ][ FLOORS ], [ x, y ] )
+          collides( level[ MOBS ], [ x, y ] ) || 
+          collides( level[ FLOORS ], [ x, y ] )
 
         if( !current ){
-          levels[ currentLevel ][ MOBS ].push( 
+          level[ MOBS ].push( 
             [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL ] 
           )
-          current = collides( levels[ currentLevel ][ MOBS ], [ x, y ] )
+          current = collides( level[ MOBS ], [ x, y ] )
         }          
 
         if( 
@@ -316,7 +311,7 @@ let G = () => {
     /*
       See if anything is at the point we tried to move to
     */
-    let currentTile = collides( levels[ currentLevel ][ MOBS ], currentPosition )
+    let currentTile = collides( level[ MOBS ], currentPosition )
 
     /*
       If we're a monster and the tile we tried to move to has a player on it,
@@ -359,7 +354,7 @@ let G = () => {
       If this is a floor tile and no mobs were here, we can move
     */
     else if( 
-      collides( levels[ currentLevel ][ FLOORS ], currentPosition ) && !currentTile 
+      collides( level[ FLOORS ], currentPosition ) && !currentTile 
     ){
       mob[ X ] = currentPosition[ X ]
       mob[ Y ] = currentPosition[ Y ]
@@ -377,11 +372,11 @@ let G = () => {
       Monsters prefer to move towards player but there's a chance they'll use
       this passed in random "keycode" instead
     */
-    for( let i = 0; i < levels[ currentLevel ][ MOBS ].length; i++ ){
+    for( let i = 0; i < level[ MOBS ].length; i++ ){
       if( 
-        levels[ currentLevel ][ MOBS ][ i ][ HP ] && 
-        levels[ currentLevel ][ MOBS ][ i ][ TILE_TYPE ] == TILE_TYPE_MONSTER 
-      ) move( levels[ currentLevel ][ MOBS ][ i ], randInt( 4 ) )
+        level[ MOBS ][ i ][ HP ] && 
+        level[ MOBS ][ i ][ TILE_TYPE ] == TILE_TYPE_MONSTER 
+      ) move( level[ MOBS ][ i ], randInt( 4 ) )
     }
 
     draw()
