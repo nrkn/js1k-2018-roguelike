@@ -1,3 +1,4 @@
+let G = () => {
 /*
   Constants - these will get inlined by the minifier but make it a lot more
   readable
@@ -70,6 +71,11 @@ let viewOff = 12 // ( viewSize - 1 ) / 2
 let fov = 8
 
 /*
+  Bog-standard exlusive max random integer function
+*/
+let randInt = exclusiveMax => ( Math.random() * exclusiveMax ) | 0
+
+/*
   Game state
 */
 let currentLevel = 0
@@ -77,11 +83,6 @@ let level
 let player = [ 
   0, 0, TILE_TYPE_PLAYER, playerStartHP, CHAR_PLAYER, COLOR_PLAYER
 ]
-
-/*
-  Bog-standard exlusive max random integer function
-*/
-let randInt = exclusiveMax => ( Math.random() * exclusiveMax ) | 0
 
 /*
   Is there a tile in collection that collides with the provided point?
@@ -481,3 +482,5 @@ b.onkeydown = e => {
 */
 NewLevel()
 draw()
+}
+G()
