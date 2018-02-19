@@ -41,7 +41,8 @@ let G = () => {
   let CHAR_MONSTER = 'm'
   let CHAR_STAIRS_DOWN = '>'
   let CHAR_STAIRS_UP = '<'
-  let CHAR_POTION = '!'
+  let CHAR_POTION = '¢'
+  let CHAR_WIN = '$'
   
   /*
     Dungeon settings
@@ -212,13 +213,16 @@ let G = () => {
     } 
   
     for( let i = 0; i < levelRooms; i++ ){
-      connect( floors[ randInt( floors.length ) ], [ randInt( levelWidth ), randInt( levelHeight ) ] )
+      connect( 
+        floors[ randInt( floors.length ) ], 
+        [ randInt( levelWidth ), randInt( levelHeight ) ] 
+      )
     }
     
     levels[ currentLevel ] = [ floors, mobs ]
 
     // would be nice to not have stairs in corridors
-    addMob( TILE_TYPE_STAIRS_DOWN, 1, CHAR_STAIRS_DOWN )
+    addMob( TILE_TYPE_STAIRS_DOWN, 1, currentLevel > 8 ? CHAR_WIN : CHAR_STAIRS_DOWN )
 
     for( let i = 0; i < levelMonsters; i++ ){
       addMob( TILE_TYPE_MONSTER, 1, CHAR_MONSTER )
@@ -256,19 +260,24 @@ let G = () => {
           collides( levels[ currentLevel ][ FLOORS ], [ x, y ] )
 
         if( !current ){
-          levels[ currentLevel ][ MOBS ].push( [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL ] )
+          levels[ currentLevel ][ MOBS ].push( 
+            [ x, y, TILE_TYPE_WALL, 1, CHAR_WALL ] 
+          )
           current = collides( levels[ currentLevel ][ MOBS ], [ x, y ] )
         }          
 
-        if( vX >= fov && vY >= fov && vX < ( viewSize - fov ) && vY < ( viewSize - fov ) ){
+        if( 
+          vX >= fov && vY >= fov && 
+          vX < ( viewSize - fov ) && vY < ( viewSize - fov ) 
+        ){
           current[ SEEN ] = 1
         }
   
         c.fillText( 
           currentLevel > 9 ?
-          '*' :
+          CHAR_WIN :
           player[ HP ] < 1 ?
-          'X' :
+          0 :
           current[ SEEN ] ? 
           current[ CHAR ] : 
           ' ', 
@@ -277,7 +286,11 @@ let G = () => {
         )
       }
     }
-    c.fillText( 'L ' + currentLevel + ' HP ' + player[ HP ], 0, viewSize * textSize )
+
+    if( player[ HP ] > 0 && currentLevel < 11 )
+      c.fillText( 
+        ( currentLevel + 1 ) + ' ¢' + player[ HP ], 0, viewSize * textSize 
+      )
   }
 
   /*
@@ -285,23 +298,25 @@ let G = () => {
   */
   let move = ( mob, direction ) => {    
     /*
-      set the position we're going to move to to the position we're already at
+      initial position
     */
-    let targetPoint = [ mob[ X ], mob[ Y ] ]
+    let currentPosition = [ mob[ X ], mob[ Y ] ]
 
     /*
       Monsters, one in five chance doesn't move towards player, otherwise try to
-      move closer - the if/else structure here creates very predictable movement
-      but is also very cheap - the chance not to move towards player helps to
-      stop monsters getting permanently stuck
+      move closer - the move algorithm  creates very predictable movement but is 
+      also very cheap - the chance not to move towards player helps to stop 
+      monsters getting permanently stuck
     */
-
-    towardsOrDirection( player, targetPoint, direction, mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 5 ) )
+    towardsOrDirection( 
+      player, currentPosition, 
+      direction, mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 5 ) 
+    )
 
     /*
       See if anything is at the point we tried to move to
     */
-    let currentTile = collides( levels[ currentLevel ][ MOBS ], targetPoint )
+    let currentTile = collides( levels[ currentLevel ][ MOBS ], currentPosition )
 
     /*
       If we're a monster and the tile we tried to move to has a player on it,
@@ -344,10 +359,10 @@ let G = () => {
       If this is a floor tile and no mobs were here, we can move
     */
     else if( 
-      collides( levels[ currentLevel ][ FLOORS ], targetPoint ) && !currentTile 
+      collides( levels[ currentLevel ][ FLOORS ], currentPosition ) && !currentTile 
     ){
-      mob[ X ] = targetPoint[ X ]
-      mob[ Y ] = targetPoint[ Y ]
+      mob[ X ] = currentPosition[ X ]
+      mob[ Y ] = currentPosition[ Y ]
     } 
   }
   

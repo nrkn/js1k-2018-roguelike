@@ -7,12 +7,12 @@ Add from top to bottom until we run out of bytes or patience
 - ~~multiple dungeon levels with difficulty progression~~
 - ~~healing potions~~
 - ~~win if reach bottom~~
+- ~~fov~~
+- move up **and** down stairs
 - multiple monster types
-- fov
 - emoji
 - colors
 - weapons/armor
-- move up **and** down stairs
 - win if reach bottom and return to top
 - gold
 - shop (level 0) - only fun if weight limit on carrying items and can sell then
@@ -38,7 +38,7 @@ New versioning - each feature increments minor by 1, better golfing patch by 1
 
 ```
 10,978 raw
- 1,436 minifed
+ 1,436 minified
    958 packed
 ```
 
@@ -50,7 +50,7 @@ New versioning - each feature increments minor by 1, better golfing patch by 1
 
 ```
 11,608 raw
- 1,473 minifed
+ 1,473 minified
    999 packed
 ```
 
@@ -63,7 +63,7 @@ New versioning - each feature increments minor by 1, better golfing patch by 1
 
 ```
 11,528 raw
- 1,486 minifed
+ 1,486 minified
  1,018 packed
 ```
 
@@ -72,3 +72,20 @@ New versioning - each feature increments minor by 1, better golfing patch by 1
 - multiple dungeon levels with difficulty progression
 - healing potions
 - win if reach bottom
+
+## v0.5.0
+
+```
+10,297 raw
+ 1,433 minified
+   982 packed
+```
+
+Changed to use cave system instead of rooms to save many bytes
+
+- decent caves that look like caves
+- monsters and combat
+- multiple dungeon levels with difficulty progression
+- healing potions
+- win if reach bottom
+- fov
