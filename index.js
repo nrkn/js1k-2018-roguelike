@@ -52,12 +52,12 @@ let G = () => {
     minRoomSize and maxRoomSize are the min/max in each direction from the 
     "center" of a room and not the total min/max size for a room
   */  
-  let width = 50
-  let height = 50
+  let width = 10
+  let height = 10
   let minRoomSize = 1
-  let maxRoomSize = 10
-  let roomCount = 10
-  let monsterCount = 5
+  let maxRoomSize = 5
+  let roomCount = 2
+  let monsterCount = 2
   let playerStartHP = 10
 
   let debug = false
@@ -109,6 +109,40 @@ let G = () => {
     }
   }
 
+  let towardsOrDirection = ( p1, p2, direction, towards ) => {
+    if( towards ){
+      if( p1[ X ] < p2[ X ] ){
+        p2[ X ]--
+      } 
+      else if( p1[ X ] > p2[ X ] ){
+        p2[ X ]++
+      } 
+      else if( p1[ Y ] < p2[ Y ] ){
+        p2[ Y ]--        
+      } 
+      else if( p1[ Y ] > p2[ Y ] ){
+        p2[ Y ]++
+      }
+    } else {
+      //up
+      if( direction == 1 ){
+        p2[ Y ]--
+      } 
+      //right
+      else if( direction == 2 ){
+        p2[ X ]++
+      } 
+      //down
+      else if( direction == 3 ){
+        p2[ Y ]++
+      } 
+      //left
+      else{
+        p2[ X ]--
+      }
+    }    
+  }
+
   /*
     Dungeon generator
   */
@@ -118,7 +152,9 @@ let G = () => {
     */
     // if( levels[ currentLevel ] ) return
    
-    let floors = []
+    let floors = [
+      [ player[ X ], player[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
+    ]
     let mobs = [ player ]
 
     let levelWidth = randInt( currentLevel * width ) + width
@@ -154,70 +190,26 @@ let G = () => {
       */
       return addMob( tileType, hp, ch )    
     }
-
-    let drawRect = ( p1, p2 ) => {
-      /*
-        If we end up using Math.min/Math.max elsewhere it may be shorter to use 
-        here too, but otherwise this ternary of horror packs better
-
-        We have to sort the points because when we're connecting two random
-        points we don't know if the second one is in the correct order
-
-        We use <= rather than < because it allows you to reuse drawRect to also
-        draw lines, saving an extra function
-      */
-      for( 
-        let y = ( p1[ Y ] < p2[ Y ] ? p1[ Y ] : p2[ Y ] ); 
-        y <= (  p1[ Y ] < p2[ Y ] ? p2[ Y ] : p1[ Y ] ); 
-        y++ 
-      ){
-        for( 
-          let x = ( p1[ X ] < p2[ X ] ? p1[ X ] : p2[ X ] ); 
-          x <= (  p1[ X ] < p2[ X ] ? p2[ X ] : p1[ X ] ); 
-          x++ 
-        ){
-          /*
-            Even a floor has to have HP to get drawn
-          */
-          floors.push( [ x, y, TILE_TYPE_FLOOR, 1, CHAR_FLOOR ] )          
-        }
-      }
-    }
     
     // draw an L-shaped corridor between these two points
-    let connect = ( p1, p2 ) => {
-      drawRect( [ p1[ X ], p1[ Y ] ], [ p1[ X ], p2[ Y ] ] )
-      drawRect( [ p1[ X ], p2[ Y ] ], [ p2[ X ], p2[ Y ] ] )
+    let connect = ( p1, p2 ) => {     
+      if( !collides( floors, p2 ) ){
+        floors.push(
+          [ p2[ X ], p2[ Y ], TILE_TYPE_FLOOR, 1, CHAR_FLOOR ]
+        )
+      }
+
+      if( p1[ X ] == p2[ X ] && p1[ Y ] == p2[ Y ] ) return
+
+      let direction = randInt( 4 )
+
+      towardsOrDirection( p1, p2, direction, !randInt( 3 ) )
+
+      connect( p1, p2 )
     } 
   
-    /*
-      For each room, pick a new point at random. It can be one that's already a 
-      corridor or room, aside from being cheaper in bytes, it makes for more
-      interesting shaped rooms if some overlap. Then connect this point randomly
-      to a point already on the map to ensure we have no disconnected rooms,
-      then draw a random rectangle over the top of this point to make the room
-    */
     for( let i = 0; i < levelRooms; i++ ){
-      /*
-        Start with player
-      */
-      let p = 
-        i == 0 ? player : [ randInt( levelWidth ), randInt( levelHeight ) ]
-    
-      if( floors.length ){
-        connect( p, floors[ randInt( floors.length ) ] )
-      }
-    
-      drawRect( 
-        [ 
-          p[ X ] - ( randInt( maxRoomSize ) + minRoomSize ),
-          p[ Y ] - ( randInt( maxRoomSize ) + minRoomSize )
-        ], 
-        [ 
-          p[ X ] + ( randInt( maxRoomSize ) + minRoomSize ),
-          p[ Y ] + ( randInt( maxRoomSize ) + minRoomSize )
-        ] 
-      )
+      connect( floors[ randInt( floors.length ) ], [ randInt( levelWidth ), randInt( levelHeight ) ] )
     }
     
     levels[ currentLevel ] = [ floors, mobs ]
@@ -294,43 +286,9 @@ let G = () => {
       but is also very cheap - the chance not to move towards player helps to
       stop monsters getting permanently stuck
     */
-    if( mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 5 ) ){
-      if( player[ X ] < mob[ X ] ){
-        targetPoint[ X ]--
-      } 
-      else if( player[ X ] > mob[ X ] ){
-        targetPoint[ X ]++
-      } 
-      else if( player[ Y ] < mob[ Y ] ){
-        targetPoint[ Y ]--        
-      } 
-      else if( player[ Y ] > mob[ Y ] ){
-        targetPoint[ Y ]++
-      }
-    } else {
-      /*
-        This block is for the player, or for monsters who are moving randomly
-        it saves bytes
-      */
 
-      //up
-      if( direction == 1 ){
-        targetPoint[ Y ]--
-      } 
-      //right
-      else if( direction == 2 ){
-        targetPoint[ X ]++
-      } 
-      //down
-      else if( direction == 3 ){
-        targetPoint[ Y ]++
-      } 
-      //left
-      else if( direction == 0 ){
-        targetPoint[ X ]--
-      }
-    }
-    
+    towardsOrDirection( player, targetPoint, direction, mob[ TILE_TYPE ] == TILE_TYPE_MONSTER && randInt( 5 ) )
+
     /*
       See if anything is at the point we tried to move to
     */
