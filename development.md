@@ -33,7 +33,8 @@ combinations of features through merges etc
 ## Features
 
 Initially I made a list of features that I wanted - I knew that not all of them
-would be possible in 1k, and that I'd have to prioritise:
+would be possible in 1k, and that I'd have to prioritise. The ticks indicate
+what made it into the final game:
 
 - ✔️ decent dungeons that look like dungeons
 - ️️️✔️ monsters and combat
