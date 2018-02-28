@@ -3,8 +3,8 @@
 I knew that a simple roguelike was possible having produced one for
 [JS1k 2010](http://js1k.com/2010-first/demo/769)
 
-Although a full game, with win and lose mechanics, level progression etc I was
-never entirely happy with it
+Although the 2010 entry was a full game, with win and lose mechanics, level
+progression etc I was never entirely happy with it
 
 What I really wanted this time was a roguelike that felt like a roguelike
 
@@ -27,7 +27,8 @@ My process this time around was:
   undoable
 
 I used [branches](https://github.com/nrkn/js1k-2018-roguelike/branches/active)
-to try out new features, which was great as I could try out different combinations of features through merges etc
+to try out new features, which was great as I could try out different
+combinations of features through merges etc
 
 ## Features
 
